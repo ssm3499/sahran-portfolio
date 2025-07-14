@@ -1,27 +1,34 @@
 // app/api/leads/route.ts
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabaseClient';
+
+type LeadPayload = {
+  name:    string;
+  email:   string;
+  message: string;
+};
 
 export async function POST(request: Request) {
-  try {
-    const { name, email, message } = await request.json();
+  // 1) Parse & type‐assert the incoming JSON
+  const data = (await request.json()) as LeadPayload;
 
-    const res = await fetch(process.env.GOOGLE_SCRIPT_URL!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, message }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Google Script returned ${res.status}: ${text}`);
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error('[/api/leads] error:', err);
-    return NextResponse.json(
-      { success: false, error: err.message },
-      { status: 500 }
-    );
+  // 2) Runtime check to ensure correct types
+  if (
+    typeof data.name !== 'string' ||
+    typeof data.email !== 'string' ||
+    typeof data.message !== 'string'
+  ) {
+    return new Response('Invalid payload', { status: 400 });
   }
+
+  // 3) Insert into your "leads" table
+  const { error } = await supabase
+    .from('leads')
+    .insert([{ name: data.name, email: data.email, message: data.message }]);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
