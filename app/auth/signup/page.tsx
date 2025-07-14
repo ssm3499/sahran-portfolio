@@ -19,7 +19,8 @@ export default function SignUpPage() {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // only extract `error` since we don’t use `data`
+    const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'error' });
@@ -53,6 +54,7 @@ export default function SignUpPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
+            required
           />
         </div>
 
@@ -64,6 +66,7 @@ export default function SignUpPage() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="••••••••"
+            required
           />
         </div>
 
