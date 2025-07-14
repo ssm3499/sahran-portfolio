@@ -1,87 +1,80 @@
-// app/auth/signup/page.tsx
 'use client';
 
-import { useState }      from 'react';
-import { useRouter }     from 'next/navigation';
-import { supabase }      from '@/lib/supabaseClient';
-import { useToast }      from '@/hooks/use-toast';
-import { Button }        from '@/components/ui/button';
-import { Input }         from '@/components/ui/input';
-import { Label }         from '@/components/ui/label';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { toast } = useToast();           // ← only `toast`
-  const [email,    setEmail]    = useState('');
+  const { toast } = useToast();
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [loading, setLoading]   = useState(false);
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
 
-    // call Supabase signUp (rename its error)
-    const { error: supabaseError } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-    if (supabaseError) {
-      // red error toast
-      toast({
-        title:       'Sign-up failed',
-        description: supabaseError.message,
-        variant:     'error'
-      });
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'error' });
     } else {
-      // green success toast
       toast({
-        title:       'Check your email',
-        description: 'A confirmation link has been sent.',
-        variant:     'success'
+        title:       'Success',
+        description: 'Check your email for the confirmation link.',
+        variant:     'success',
       });
       router.push('/auth/signin');
     }
 
     setLoading(false);
-  };
+  }
 
   return (
-    <form
-      onSubmit={handleSignUp}
-      className="
-        max-w-md mx-auto space-y-4 p-6
-        bg-white/10 dark:bg-black/20
-        rounded-lg
-      "
-    >
-      <h1 className="text-2xl font-bold text-center">Sign Up</h1>
+    <div className="flex justify-center py-16 px-4 bg-gray-50 dark:bg-gray-900">
+      <form
+        onSubmit={handleSignUp}
+        className="w-full max-w-md space-y-6 bg-white dark:bg-gray-800 p-8 rounded-lg shadow"
+      >
+        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+          Sign Up
+        </h1>
 
-      {/* Email */}
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-      </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+        </div>
 
-      {/* Password */}
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-      </div>
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+        </div>
 
-      {/* Submit */}
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Signing up…' : 'Sign Up'}
-      </Button>
-    </form>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 bg-green-600 hover:bg-green-700 text-white"
+        >
+          {loading ? 'Signing up…' : 'Create Account'}
+        </Button>
+      </form>
+    </div>
   );
 }
